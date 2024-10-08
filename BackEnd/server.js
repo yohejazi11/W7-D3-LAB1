@@ -5,6 +5,28 @@ const port = 3000
 app.use(express.json()) 
 
 const posts = []
+const users=[]
+
+app.post('/signup',(req,res)=>{
+    const {username,password}=req.body;
+    const newUser={id:users.length+1,username,password};
+    users.push(newUser);
+    res.json(newUser);
+})
+
+app.post('/login',(req,res)=>{
+    const {username,password}=req.body;
+    const user= users.find(u=> u.username==username && u.password==password)
+
+    if(user)
+    {
+        res.send("succesful log in")
+    }
+    else{
+        res.send("faild log in")
+    }
+
+})
 
 app.get('/posts', (req, res) => {
     res.json(posts);
