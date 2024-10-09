@@ -1,69 +1,67 @@
 
 import express from "express"
+import mongoose from "mongoose"
+import Article from "./models/Blog.js"
+import dotenv from 'dotenv'
 const app = express()
 const port = 3000
-app.use(express.json()) 
+app.use(express.json())
 
-const posts = []
-const users=[]
+dotenv.config()
 
-app.post('/signup',(req,res)=>{
-    const {username,password}=req.body;
-    const newUser={id:users.length+1,username,password};
-    users.push(newUser);
-    res.json(newUser);
+
+main().catch(err => console.log(err));
+
+async function main() {
+    await mongoose.connect(process.env.MONGO_URL);
+    console.log("data base connect")
+}
+
+app.post('/user',(req,res)=>{
+    const article = new Article({
+        title:req.body.title,
+        body:req.body.body,
+        auther:req.body.auther,
+        emplyed:req.body.emplyed,
+    })
+    article.save()
+
+    .then((result)=>{
+        res.send(result);
+    })
 })
 
-app.post('/login',(req,res)=>{
-    const {username,password}=req.body;
-    const user= users.find(u=> u.username==username && u.password==password)
+app.get('/articls',(req,res)=>{
+    Article.find()
+    .then(result=>{
+        res.send(result)
+    }).catch(()=>{
+        res.send("error")
+    })
+})
 
-    if(user)
-    {
-        res.send("succesful log in")
-    }
-    else{
-        res.send("faild log in")
-    }
+app.patch('/articls/:id',(req,res)=>{
+    const {id}=req.params
+    Article.findByIdAndUpdate(id,req.body,{new:true,})
+    .then(respone=>res.json())
 
 })
 
-app.get('/posts', (req, res) => {
-    res.json(posts);
-});
-app.post('/posts', (req, res) => {
-    console.log(req.body);
+app.get('/user',(req,res)=>{
+    const article = new Article({
+        title:req.body.title,
+        body:req.body.body,
+        auther:req.body.auther,
+        emplyed:req.body.emplyed,
+    })
+    article.save()
 
-    const { username, post } = req.body;
-    const newPost = { id: posts.length + 1, username, post };
-    posts.push(newPost);
-    res.json(newPost);
-
-});
-
-app.patch('/posts/:id', (req, res) => {
-    const userId = parseInt(req.params.id);
-    const { username, post } = req.body;
-    const user = posts.find(u => u.id === userId);
-
-    if (user) {
-        user.username = username || user.username;
-        user.post = post || user.post;
-        res.json(user);
-    } else {
-        res.status(404).json({ message: 'User not found' });
-    }
-});
-
-app.delete('/posts/:id',(req,res)=>{
-    const userID=parseInt(req.params.id)
-    const post=posts.findIndex(item=>item.id ===userID);
-    if(post){
-        posts.splice(post, 1);
-        res.json({ message: "Data deleted successfully" });
-    }
-
+    .then((result)=>{
+        res.send(result);
+    })
 })
+
+
 app.listen(port, () => {
 
     console.log(`Example app listening on port ${port}`)
